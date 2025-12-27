@@ -47,16 +47,16 @@ HirschbergTemplate <- function(X, Y, alignment, match, mismatch, gap){
         # The first half
         if (ymid == 0) { # index of division for Y is equal to 0
             # call Hirschberg function for the first half of X and for an empty DNAString object
-            alignment <- HirschbergTemplate(X[1:xmid], DNAString(""), alignment, match, mismatch, gap)
+            alignment <- HirschbergTemplate(X[1:(xmid)], DNAString(""), alignment, match, mismatch, gap)
         } else {
             # call Hirschberg function for the first half of X and for the first part of Y
-            alignment <- HirschbergTemplate(X[1:xmid], Y[1:ymid], alignment, match, mismatch, gap)
+            alignment <- HirschbergTemplate(X[1:(xmid)], Y[1:(ymid)], alignment, match, mismatch, gap)
         }
         
         # The second half
         if ((xmid + 1) > xlen) { # X cannot be further divided
             # call Hirschberg function for an empty DNAString object and the second half of Y
-            alignment <- HirschbergTemplate(DNAString(""), Y[ymid:ylen], alignment, match, mismatch, gap)
+            alignment <- HirschbergTemplate(DNAString(""), Y[(ymid+1):ylen], alignment, match, mismatch, gap)
         } else if ((ymid + 1) > ylen) { # Y cannot be further divided
             # call Hirschberg function for the second half of X and for an empty DNAString object
             alignment <- HirschbergTemplate(X[(xmid+1):xlen], DNAString(""), alignment, match, mismatch, gap)
@@ -76,30 +76,27 @@ HirschbergTemplate <- function(X, Y, alignment, match, mismatch, gap){
 Needle_wunch <- function(X, Y, match, missmatch, gap){
   xlen <- length(X)
   ylen <- length(Y)
-  alignment <- matrix(c(1:(ylen*xlen)), nrow = xlen, ncol = ylen)
-  for (i in 1:xlen){
-    for (j in 1:ylen){
-      if (i == 1){
-        alignment[i, j] <- (j-1)*gap
-      } else if (j == 1) {
-        alignment[i, j] <- (i-1)*gap
-      }else {
-        if (X[i] == Y[j]){
-          plus <- match
-        } else {
-          plus <- missmatch
-        }
-        alignment[i, j] <- max(c((alignment[(i-1), (j-1)] + plus), (alignment[i-1, j] + gap), (alignment[i, j-1] + gap)))
+  #alignment <- matrix(c(1:((ylen+1)*(xlen+1))), nrow = (xlen+1), ncol = (ylen+1))
+  alignment <- matrix(0, nrow = (xlen+1), ncol = (ylen+1))
+  alignment[1, ] <- 0:ylen * gap
+  alignment[, 1] <- 0:xlen * gap
+  for (i in 2:(xlen+1)){
+    for (j in 2:(ylen+1)){
+    if (X[(i-1)] == Y[(j-1)]){
+        plus <- match
+      } else {
+        plus <- missmatch
       }
+      alignment[i, j] <- max((alignment[(i-1), (j-1)] + plus), (alignment[i-1, j] + gap), (alignment[i, j-1] + gap))
     }
   }
-  return(alignment[xlen, 1:ylen])
+  return(alignment[(xlen+1),])
 }
 
 library(Biostrings)
 
-X <- DNAString("AGTACGCA")
-Y <- DNAString("TATGC")
+X <- DNAString("TACGAGGCA")
+Y <- DNAString("ACGGA")
 match <- 3
 missmatch <- 1
 gap <- -3
